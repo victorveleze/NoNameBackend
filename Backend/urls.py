@@ -19,8 +19,6 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    path('addUser/<str:type>/<int:id>/<str:name>', views.AddUser),
-    path('login/<str:username>/<str:userpass>', views.login),
-    path('PostR/', views.PostR),
+    path('login/', views.login),
+    path('addUser/', views.addUser),
 ]
