@@ -28,10 +28,7 @@ class DataBaseManager(metaclass=Singleton):
         return loginSuccess
 
 
-    def upsert(self, doc):
-        if self._userIsLogged:
-            self._database.login(self._username, self._password)
-            self._database.upsert_document(doc)
-            return True
-
-        return False
+    def insert_user(self, doc):
+        key = doc["user_name"] + "_" + doc["user_last_name"]
+        insertSuccess = self._database.insert_document(doc, "NoName-Bucket", "Users", "Info", key)
+        return insertSuccess

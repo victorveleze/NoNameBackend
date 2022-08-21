@@ -1,4 +1,5 @@
 import json
+from urllib import response
 from django.http import JsonResponse
 from Backend.Utilities.DataBaseManager import DataBaseManager
 from django.views.decorators.csrf import csrf_exempt
@@ -14,8 +15,7 @@ def login(request):
         jsonData = { "respose" : "Login failed" }
         return  JsonResponse(jsonData)
 
-    dbManager = DataBaseManager()
-    loginSuccess = dbManager.login(username, password)
+    loginSuccess = DataBaseManager().login(username, password)
     response = "Login success" if loginSuccess else "Login failed"
     jsonData = { "respose" : response }
     return JsonResponse(jsonData)
@@ -27,10 +27,9 @@ def logout(request):
 @csrf_exempt
 def addUser(request):
     userInfo = json.loads(request.body)
-    dbManager = DataBaseManager()
-    upsertSuccess = dbManager.upsert(userInfo)
+    upsertSuccess = DataBaseManager().insert_user(userInfo)
     
-    response = "Upsert success" if upsertSuccess else "Upsert failed"
+    response = "User added succesfully" if upsertSuccess else "Failed to added user "
     jsonData = { "response" : response }
     return  JsonResponse(jsonData)
 

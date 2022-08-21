@@ -7,45 +7,56 @@ from couchbase.options import (ClusterOptions, ClusterTimeoutOptions,
                                QueryOptions)
 
 HOST = 'couchbase://localhost'
+DB_USER = 'Victor'
+DB_PASS = 'victor'
 
 class CouchBD():
     def __init__(self):
         print("[CouchBD] DataBaseInstance created")
-
-
-    def login(self, username, password):
         self._bucket_name = "Test-bucket-big"
         cert_path = "path/to/certificate"
 
         self._auth = PasswordAuthenticator(
-                    username,
-                    password,
+                    DB_USER,
+                    DB_PASS,
                     # NOTE: If using SSL/TLS, add the certificate path.
                     # We strongly reccomend this for production use.
                     # cert_path=cert_path
                     )
-        try:
-            self._cluster = Cluster(HOST, ClusterOptions(self._auth))
-            self._cluster.wait_until_ready(timedelta(seconds=1))      
-            self._cb = self._cluster.bucket(self._bucket_name)
-            self._cb_coll = self._cb.scope("events").collection("city")
-        except:
-            print("[CouchBD] Login exception")
-            return False
+        self._cluster = Cluster(HOST, ClusterOptions(self._auth))
+        self._cluster.wait_until_ready(timedelta(seconds=1))      
+        #self._cb = self._cluster.bucket(self._bucket_name)
+        #self._cb_coll = self._cb.scope("events").collection("city")
 
-        return True
 
-    def upsert_document(self, doc):
-        print("\nUpsert CAS: ")
+    def insert_document(self, doc, bucketName, scopeName, collectionName, key):
+        print("\nInsert CAS: ")
         try:
-            # key will equal: "airline_8091"
-            
-            key = doc["type"] + "_" + str(doc["id"])
-            result = self._cb_coll.upsert(key, doc)
+            bucket = self._cluster.bucket(bucketName)
+            bucketCollection = bucket.scope(scopeName).collection(collectionName)
+            result = bucketCollection.insert(key, doc)
+            insertSuccess = True
             print(result.cas)
         except Exception as e:
+            insertSuccess = False
             print(e)
 
+        return insertSuccess
+
+
+    def upsert_document(self, doc, bucketName, scopeName, collectionName, key):
+        print("\nUpsert CAS: ")
+        try:
+            bucket = self._cluster.bucket(bucketName)
+            bucketCollection = bucket.scope(scopeName).collection(collectionName)
+            result = bucketCollection.upsert(key, doc)
+            upsertSuccess = True
+            print(result.cas)
+        except Exception as e:
+            upsertSuccess = False
+            print(e)
+
+        return upsertSuccess
 
 
     def get_airline_by_key(self, key):
