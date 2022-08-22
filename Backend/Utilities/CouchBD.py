@@ -26,10 +26,10 @@ class CouchBD():
         self._cluster = Cluster(HOST, ClusterOptions(self._auth))
         self._cluster.wait_until_ready(timedelta(seconds=1))      
         #self._cb = self._cluster.bucket(self._bucket_name)
-        #self._cb_coll = self._cb.scope("events").collection("city")
+        #self._cb_coll = self._cb.scope("events").collection("city")    
 
 
-    def insert_document(self, doc, bucketName, scopeName, collectionName, key):
+    def insert_document(self, doc, bucketName, scopeName, collectionName, key) -> bool:
         print("\nInsert CAS: ")
         try:
             bucket = self._cluster.bucket(bucketName)
@@ -44,7 +44,7 @@ class CouchBD():
         return insertSuccess
 
 
-    def upsert_document(self, doc, bucketName, scopeName, collectionName, key):
+    def upsert_document(self, doc, bucketName, scopeName, collectionName, key) -> bool:
         print("\nUpsert CAS: ")
         try:
             bucket = self._cluster.bucket(bucketName)
@@ -59,13 +59,17 @@ class CouchBD():
         return upsertSuccess
 
 
-    def get_airline_by_key(self, key):
+    def get_user_by_key(self, bucketName, scopeName, collectionName, key) -> dict:
         print("\nGet Result: ")
         try:
-            result = self._cb_coll.get(key)
-            print(result.content_as[str])
+            bucket = self._cluster.bucket(bucketName)
+            bucketCollection = bucket.scope(scopeName).collection(collectionName)
+            user = bucketCollection.get(key).content_as[dict]
         except Exception as e:
             print(e)
+            user = None
+
+        return user
 
 
     def lookup_by_callsign(self, cs):
@@ -79,12 +83,3 @@ class CouchBD():
                 print(row)
         except Exception as e:
             print(e)
-
-    
-    def close(self):
-        self._cluster.close()
-        print("[CouchBD] Closing DB connection")
-
-
-    def __del__(self):
-        self.close()

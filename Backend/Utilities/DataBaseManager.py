@@ -7,28 +7,34 @@ class DataBaseManager(metaclass=Singleton):
     def __init__(self):
         print("[DataBaseManager] DataBaseManager instanced")
 
-        self._database = CouchBD()
         self._username = None
         self._password = None
         self._userIsLogged = False
 
 
     def login(self, username, password):
-        loginSuccess = self._database.login(username, password)
-        if loginSuccess:
-            self._database.close()
-            self._userIsLogged = True
-            self._username = username
-            self._password = password
-            log = "[DataBaseManager] Login success"
+        db = CouchBD()
+        user = db.get_user_by_key("NoName-Bucket", "Users", "Info", username)
+        if user is not None:
+            if  user["password"] == password:
+                self._userIsLogged = True
+                self._username = username
+                self._password = password
+                status = "Login success"
+                success = True
+            else:
+                status = "Incorrect password"
+                success = False
         else:
-            log = "[DataBaseManager] Login failed"
-        
-        print(log)
-        return loginSuccess
+            status = "User does not exist"
+            success = False
+
+        print(status)
+        return (success, status)
 
 
     def insert_user(self, doc):
-        key = doc["user_name"] + "_" + doc["user_last_name"]
-        insertSuccess = self._database.insert_document(doc, "NoName-Bucket", "Users", "Info", key)
+        key = doc["user_email"]
+        db = CouchBD()
+        insertSuccess = db.insert_document(doc, "NoName-Bucket", "Users", "Info", key)
         return insertSuccess
